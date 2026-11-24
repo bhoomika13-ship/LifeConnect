@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LifeConnect</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#fff1eb;color:#42212c}
+header{background:linear-gradient(120deg,#a91d40,#ed7180);color:white;text-align:center;padding:35px 12px}
+header h1{font-size:36px;margin:0}
+nav{background:#401c35;padding:15px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+button{background:#bd2948;color:white;border:0;padding:12px 20px;border-radius:7px;cursor:pointer;font-weight:bold}
+nav button{background:#ffe5d5;color:#401c35}
+button:hover{opacity:.8}
+.container{max-width:950px;margin:25px auto;padding:12px}
+.page{display:none;background:white;padding:25px;border-radius:12px;min-height:300px}
+.page.active{display:block}
+h2{color:#bd2948}
+.hero{text-align:center;padding:45px 10px}
+.hero h2{font-size:32px}
+.cards{display:flex;gap:15px;flex-wrap:wrap}
+.card{background:#ffe4df;padding:20px;border-radius:10px;flex:1;min-width:160px}
+input,select,textarea{width:100%;padding:13px;margin:8px 0 15px;border:1px solid #ccc;border-radius:6px}
+form button{width:100%}
+.item{background:#fff0eb;padding:15px;margin:12px 0;border-left:5px solid #bd2948;border-radius:7px;overflow-wrap:anywhere}
+footer{text-align:center;background:#401c35;color:white;padding:20px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>❤️ LifeConnect</h1>
+<p>Community Blood Donor Registry & Emergency Request System</p>
+</header>
+
+<nav>
+<button onclick="showPage('home')">Home</button>
+<button onclick="showPage('donor')">Register Donor</button>
+<button onclick="showPage('donor')">Become a Donor</button>
+<button onclick="showPage('request')">Request Blood</button>
+<button onclick="showPage('login')">Admin</button>
+</nav>
+
+<div class="container">
+
+<section id="home" class="page active">
+<div class="hero">
+<h2>Donate Blood, Save Lives</h2>
+<p>Every Drop Matters. Your Donation Can Save Lives.</p>
+<button onclick="showPage('donor')">Become a Donor</button>
+<button onclick="showPage('request')">Request Blood</button>
+</div>
+<div class="cards">
+<div class="card"><h3>❤️ Donate Blood</h3><p>Register as a voluntary donor.</p></div>
+<div class="card"><h3>🩸 Request Blood</h3><p>Submit your blood request.</p></div>
+<div class="card"><h3>🤝 Help Others</h3><p>Help people in emergencies.</p></div>
+</div>
+</section>
+
+<section id="donor" class="page">
+<h2>Register as a Donor</h2>
+<form id="donorForm">
+<label>Full Name</label>
+<input id="dname" required>
+<label>Age</label>
+<input id="dage" type="number" min="18" required>
+<label>Phone Number</label>
+<input id="dphone" type="tel" required>
+<label>Email</label>
+<input id="demail" type="email" required>
+<label>Blood Group</label>
+<select id="dgroup" required>
+<option value="">Select Blood Group</option>
+<option>A+</option><option>A-</option>
+<option>B+</option><option>B-</option>
+<option>AB+</option><option>AB-</option>
+<option>O+</option><option>O-</option>
+</select>
+<label>City</label>
+<input id="dcity" required>
+<button type="submit">Register Now</button>
+</form>
+<p id="donorMsg"></p>
+<button onclick="showPage('home')">Back Home</button>
+</section>
+
+<section id="request" class="page">
+<h2>Request Blood</h2>
+<form id="requestForm">
+<label>Patient Name</label>
+<input id="pname" required>
+<label>Contact Number</label>
+<input id="pphone" type="tel" required>
+<label>Blood Group Required</label>
+<select id="pgroup" required>
+<option value="">Select Blood Group</option>
+<option>A+</option><option>A-</option>
+<option>B+</option><option>B-</option>
+<option>AB+</option><option>AB-</option>
+<option>O+</option><option>O-</option>
+</select>
+<label>Hospital Name</label>
+<input id="hospital" required>
+<label>City</label>
+<input id="pcity" required>
+<label>Units Required</label>
+<input id="units" type="number" min="1" required>
+<label>Additional Details</label>
+<textarea id="details"></textarea>
+<button type="submit">Submit Request</button>
+</form>
+<p id="requestMsg"></p>
+<button onclick="showPage('home')">Back Home</button>
+</section><section id="login" class="page">
+<h2>Admin Login</h2>
+<form id="loginForm">
+<label>Username</label>
+<input id="username" required>
+<label>Password</label>
+<input id="password" type="password" required>
+<button type="submit">Login</button>
+</form>
+<p id="loginMsg"></p>
+</section>
+
+<section id="admin" class="page">
+<h2>❤️ Admin Dashboard</h2>
+<button onclick="loadAdmin()">Refresh Data</button>
+<button onclick="logout()">Logout</button>
+
+<div class="cards">
+<div class="card"><h3>Total Donors</h3><h2 id="donorCount">0</h2></div>
+<div class="card"><h3>Total Requests</h3><h2 id="requestCount">0</h2></div>
+</div>
+
+<h2>Registered Donors</h2>
+<div id="donorList"></div>
+
+<h2>Blood Requests</h2>
+<div id="requestList"></div>
+</section>
+
+</div>
+
+<footer>
+<p>LifeConnect | Every Drop Matters ❤️</p>
+</footer>
+
+<script>
+const getData = key => {
+ try { return JSON.parse(localStorage.getItem(key)) || []; }
+ catch(e) { return []; }
+};
+
+const saveData = (key,data) =>
+ localStorage.setItem(key,JSON.stringify(data));
+
+function showPage(id) {
+ document.querySelectorAll(".page").forEach(p=>{
+  p.classList.remove("active");
+ });
+ document.getElementById(id).classList.add("active");
+ window.scrollTo(0,0);
+}
+
+// DONOR REGISTRATION
+document.getElementById("donorForm").addEventListener("submit",function(e){
+ e.preventDefault();
+
+ const donor={
+  name:document.getElementById("dname").value.trim(),
+  age:document.getElementById("dage").value,
+  phone:document.getElementById("dphone").value.trim(),
+  email:document.getElementById("demail").value.trim(),
+  group:document.getElementById("dgroup").value,
+  city:document.getElementById("dcity").value.trim()
+ };
+
+ const donors=getData("lcDonors");
+ donors.push(donor);
+ saveData("lcDonors",donors);
+
+ document.getElementById("donorMsg").textContent=
+ "Registration successful! Thank you for becoming a donor.";
+ this.reset();
+});
+
+// BLOOD REQUEST
+document.getElementById("requestForm").addEventListener("submit",function(e){
+ e.preventDefault();
+
+ const request={
+  name:document.getElementById("pname").value.trim(),
+  phone:document.getElementById("pphone").value.trim(),
+  group:document.getElementById("pgroup").value,
+  hospital:document.getElementById("hospital").value.trim(),
+  city:document.getElementById("pcity").value.trim(),
+  units:document.getElementById("units").value,
+  details:document.getElementById("details").value,
+  status:"Pending"
+ };
+
+ const requests=getData("lcRequests");
+ requests.push(request);
+ saveData("lcRequests",requests);
+
+ document.getElementById("requestMsg").textContent=
+ "Blood request submitted successfully!";
+ this.reset();
+});
+
+// ADMIN LOGIN - DEMO ONLY
+document.getElementById("loginForm").addEventListener("submit",function(e){
+ e.preventDefault();
+
+ const u=document.getElementById("username").value.trim();
+ const p=document.getElementById("password").value;
+
+ if(u==="admin" && p==="1234"){
+  document.getElementById("loginMsg").textContent="";
+  this.reset();
+  showPage("admin");
+  loadAdmin();
+ }else{
+  document.getElementById("loginMsg").textContent=
+  "Invalid username or password!";
+ }
+});
+
+// SAFE TEXT DISPLAY
+function addText(parent,text){
+ const p=document.createElement("p");
+ p.textContent=text;
+ parent.appendChild(p);
+}
+
+// ADMIN DASHBOARD
+function loadAdmin(){
+ const donors=getData("lcDonors");
+ const requests=getData("lcRequests");
+
+ document.getElementById("donorCount").textContent=donors.length;
+ document.getElementById("requestCount").textContent=requests.length;
+
+ const dl=document.getElementById("donorList");
+ dl.replaceChildren();
+
+ if(!donors.length) dl.textContent="No donors registered yet.";
+
+ donors.forEach((d,i)=>{
+  const box=document.createElement("div");
+  box.className="item";
+  addText(box,"Donor "+(i+1));
+  addText(box,"Name: "+d.name);
+  addText(box,"Age: "+d.age);
+  addText(box,"Phone: "+d.phone);
+  addText(box,"Email: "+d.email);
+  addText(box,"Blood Group: "+d.group);
+  addText(box,"City: "+d.city);
+  dl.appendChild(box);
+ });
+
+ const rl=document.getElementById("requestList");
+ rl.replaceChildren();
+
+ if(!requests.length) rl.textContent="No blood requests yet.";
+
+ requests.forEach((r,i)=>{
+  const box=document.createElement("div");
+  box.className="item";
+  addText(box,"Request "+(i+1));
+  addText(box,"Patient: "+r.name);
+  addText(box,"Phone: "+r.phone);
+  addText(box,"Blood Group: "+r.group);
+  addText(box,"Hospital: "+r.hospital);
+  addText(box,"City: "+r.city);
+  addText(box,"Units: "+r.units);
+  addText(box,"Details: "+r.details);
+  addText(box,"Status: "+r.status);
+
+  const btn=document.createElement("button");
+  btn.textContent="Mark Completed";
+  btn.onclick=()=>{
+   const latest=getData("lcRequests");
+   latest[i].status="Completed";
+   saveData("lcRequests",latest);
+   loadAdmin();
+  };
+  box.appendChild(btn);
+  rl.appendChild(box);
+ });
+}
+
+function logout(){
+ showPage("home");
+ document.getElementById("loginForm").reset();
+}
+</script>
+</body>
+</html>
